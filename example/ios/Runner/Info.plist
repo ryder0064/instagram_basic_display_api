@@ -41,5 +41,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>INSTAGRAM_CLIENT_ID</key>
+	<string>$(INSTAGRAM_CLIENT_ID)</string>
+	<key>INSTAGRAM_CLIENT_SECRET</key>
+	<string>$(INSTAGRAM_CLIENT_SECRET)</string>
+	<key>REDIRECT_URI</key>
+	<string>$(REDIRECT_URI)</string>
 </dict>
 </plist>

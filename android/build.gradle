@@ -24,6 +24,10 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+def secretPropertiesFile = rootProject.file("secret.properties")
+def secretProperties = new Properties()
+secretProperties.load(new FileInputStream(secretPropertiesFile))
+
 android {
     compileSdkVersion 30
 
@@ -32,6 +36,10 @@ android {
     }
     defaultConfig {
         minSdkVersion 16
+
+        buildConfigField("String", "INSTAGRAM_CLIENT_ID", secretProperties['INSTAGRAM_CLIENT_ID'])
+        buildConfigField("String", "INSTAGRAM_CLIENT_SECRET", secretProperties['INSTAGRAM_CLIENT_SECRET'])
+        buildConfigField("String", "REDIRECT_URI", secretProperties['REDIRECT_URI'])
     }
 }
 

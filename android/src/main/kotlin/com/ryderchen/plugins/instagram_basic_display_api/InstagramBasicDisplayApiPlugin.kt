@@ -23,6 +23,8 @@ class InstagramBasicDisplayApiPlugin: FlutterPlugin, MethodCallHandler {
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     if (call.method == "getPlatformVersion") {
+      val id: String = BuildConfig.INSTAGRAM_CLIENT_ID
+      println("INSTAGRAM_CLIENT_ID = $id")
       result.success("Android ${android.os.Build.VERSION.RELEASE}")
     } else {
       result.notImplemented()

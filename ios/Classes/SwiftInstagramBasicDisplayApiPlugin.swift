@@ -9,6 +9,8 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    let id = Bundle.main.object(forInfoDictionaryKey: "INSTAGRAM_CLIENT_ID") as? String
+    print("INSTAGRAM_CLIENT_ID = \(id)")
     result("iOS " + UIDevice.current.systemVersion)
   }
 }

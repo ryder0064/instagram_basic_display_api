@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - instagram_basic_display_api (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - instagram_basic_display_api (from `.symlinks/plugins/instagram_basic_display_api/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  instagram_basic_display_api:
+    :path: ".symlinks/plugins/instagram_basic_display_api/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  instagram_basic_display_api: eb005a7713b6d7251e098384ed3ecf0a7c420186
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.10.1
