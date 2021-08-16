@@ -2,7 +2,7 @@ group 'com.ryderchen.plugins.instagram_basic_display_api'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.3.50'
+    ext.kotlin_version = '1.4.31'
     repositories {
         google()
         jcenter()
@@ -35,14 +35,35 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 23
 
         buildConfigField("String", "INSTAGRAM_CLIENT_ID", secretProperties['INSTAGRAM_CLIENT_ID'])
         buildConfigField("String", "INSTAGRAM_CLIENT_SECRET", secretProperties['INSTAGRAM_CLIENT_SECRET'])
         buildConfigField("String", "REDIRECT_URI", secretProperties['REDIRECT_URI'])
     }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
+
+    // Moshi
+    implementation 'com.squareup.moshi:moshi-kotlin:1.9.3'
+    // Retrofit with Moshi Converter
+    implementation 'com.squareup.retrofit2:converter-moshi:2.9.0'
+    // coroutine
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2'
+    // Koin Android
+    implementation "org.koin:koin-android:2.0.1"
+    implementation "org.koin:koin-androidx-viewmodel:2.0.1"
+
+    implementation "androidx.security:security-crypto:1.0.0"
 }

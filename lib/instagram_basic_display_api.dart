@@ -11,4 +11,11 @@ class InstagramBasicDisplayApi {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
     return version;
   }
+
+  static Future<bool> get isInstagramTokenValid async {
+    print('isInstagramTokenValid');
+    final bool isInstagramTokenValid =
+    await _channel.invokeMethod('isInstagramTokenValid');
+    return isInstagramTokenValid;
+  }
 }

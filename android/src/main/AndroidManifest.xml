@@ -1,3 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.ryderchen.plugins.instagram_basic_display_api">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.ryderchen.plugins.instagram_basic_display_api">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-sdk tools:overrideLibrary="androidx.security"/>
+    <application
+        android:name=".di.MyApplication"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".ui.AccessTokenActivity"
+            android:exported="false" />
+    </application>
+
 </manifest>
