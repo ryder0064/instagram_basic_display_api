@@ -11,24 +11,25 @@ import CoreData
 class AccessTokenViewModel: ObservableObject {
     
     enum State {
-            case isLoading
-            case failed(Error)
-            case loaded
-        }
+        case isLoading
+        case failed(Error)
+        case loaded
+    }
     
     @Published private(set) var state = State.isLoading
-
+    
     func isTokenValid() -> Bool {
         return false
     }
     
     func getAccessToken(clientId: String, clientSecret: String, code: String, redirectUri: String) {
-            print("WWWWWW")
-
-            AccessTokenURLSession.shared.getShortAccessTokenInfo(requestBody: ShortAccessTokenRequestBody(clientId: clientId, clientSecret: clientSecret, code: code, grantType: "authorization_code", redirectUri: redirectUri)) { response in
-                DispatchQueue.main.async {
-                    print("QQQQQ \(response)")
+        
+        AccessTokenURLSession.shared.getShortAccessTokenInfo(clientId: clientId, clientSecret: clientSecret, code: code, redirectUri: redirectUri) { response in
+            DispatchQueue.main.async {
+                AccessTokenURLSession.shared.getLongAccessTokenInfo(accessToken: response.accessToken, clientSecret: clientSecret, grantType: "ig_exchange_token") { LongAccessTokenResponse in
+                    print("QQQQQ \(LongAccessTokenResponse)")
                 }
             }
+        }
     }
 }

@@ -11,24 +11,46 @@ import Foundation
 class AccessTokenURLSession {
     static let shared = AccessTokenURLSession()
     
-    func getShortAccessTokenInfo(requestBody: ShortAccessTokenRequestBody,completionHandler: @escaping (ShortAccessTokenResponse) -> Void) {
-        print("requestBody \(requestBody) ")
+    private let boundary = "boundary=\(NSUUID().uuidString)"
+    
+    func getShortAccessTokenInfo(clientId: String, clientSecret: String, code: String, redirectUri: String, completionHandler: @escaping (ShortAccessTokenResponse) -> Void) {
         
         let url = URL(string: "https://api.instagram.com/oauth/access_token")!
         
+        
+        let headers = [
+            "content-type": "multipart/form-data; boundary=\(boundary)"
+        ]
+        let parameters = [
+            [
+                "name": "client_id",
+                "value": clientId
+            ],
+            [
+                "name": "client_secret",
+                "value": clientSecret
+            ],
+            [
+                "name": "grant_type",
+                "value": "authorization_code"
+            ],
+            [
+                "name": "redirect_uri",
+                "value": redirectUri
+            ],
+            [
+                "name": "code",
+                "value": code
+            ]
+        ]
+        
         var request = URLRequest(url: url)
+        let postData = getFormBody(parameters, boundary)
+        
+        request.allHTTPHeaderFields = headers
         request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
-        guard let httpBody = try? encoder.encode(requestBody) else {
-            print("Invalid httpBody")
-            return
-        }
-        
-        request.httpBody = httpBody
-        print("httpBody \(httpBody) ")
+        request.httpBody = postData
         
         URLSession.shared.dataTask(with: request) {
             data, response, error in
@@ -39,37 +61,19 @@ class AccessTokenURLSession {
                     let response = try decoder.decode(ShortAccessTokenResponse.self, from: data)
                     completionHandler(response)
                 } catch {
-                    let httpResponse = response as! HTTPURLResponse
-                    print("\nhttpResponse.statusCode = \(httpResponse.statusCode)\n")
-                    print("\nhttpResponse.allHeaderFields = \(httpResponse.allHeaderFields)\n")
-                    print("\nhttpResponse.description = \(httpResponse.description)\n")
-
-                    let outputStr  = String(data: data, encoding: String.Encoding.utf8)! as String
-                    print("data = \(outputStr)")
+                    print(error.localizedDescription)
                 }
-                            
             } else {
                 print("No Data")
             }
         }.resume()
     }
     
-    func getLongAccessTokenInfo(requestBody: LongAccessTokenRequestBody, completionHandler: @escaping (LongAccessTokenResponse) -> Void) {
+    func getLongAccessTokenInfo(accessToken: String,clientSecret: String,grantType: String, completionHandler: @escaping (LongAccessTokenResponse) -> Void) {
         
-        let url = URL(string: "https://graph.instagram.com/access_token")!
+        let url = URL(string: "https://graph.instagram.com/access_token?access_token=\(accessToken)&client_secret=\(clientSecret)&grant_type=\(grantType)")!
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
-        guard let httpBody = try? JSONEncoder().encode(requestBody) else {
-            print("Invalid httpBody")
-            return
-        }
-        
-        request.httpBody = httpBody
+        let request = URLRequest(url: url)
         
         URLSession.shared.dataTask(with: request) {
             data, response, error in
@@ -89,5 +93,32 @@ class AccessTokenURLSession {
                 print("No Data")
             }
         }.resume()
+    }
+    
+    private func getFormBody(_ parameters: [[String : String]], _ boundary: String) -> Data {
+        var body = ""
+        let error: NSError? = nil
+        for param in parameters {
+            let paramName = param["name"]!
+            body += "--\(boundary)\r\n"
+            body += "Content-Disposition:form-data; name=\"\(paramName)\""
+            if let filename = param["fileName"] {
+                let contentType = param["content-type"]!
+                var fileContent: String = ""
+                do { fileContent = try String(contentsOfFile: filename, encoding: String.Encoding.utf8)}
+                catch {
+                    print(error)
+                }
+                if (error != nil) {
+                    print(error!)
+                }
+                body += "; filename=\"\(filename)\"\r\n"
+                body += "Content-Type: \(contentType)\r\n\r\n"
+                body += fileContent
+            } else if let paramValue = param["value"] {
+                body += "\r\n\r\n\(paramValue)"
+            }
+        }
+        return body.data(using: .utf8)!
     }
 }

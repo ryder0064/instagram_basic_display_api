@@ -37,9 +37,7 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
         
         if clientId != nil && redirectUri != nil {
             let urlString = "https://www.instagram.com/oauth/authorize?client_id=\(clientId!)&redirect_uri=\(redirectUri!)&scope=user_profile,user_media&response_type=code"
-            
-            print("\n\n\n\n QQQQ \n\(urlString)")
-            
+                        
             let myURL = URL(string:urlString)
             let myRequest = URLRequest(url: myURL!)
             webView.load(myRequest)
@@ -84,24 +82,16 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
             return
         }
         
-        print("\n\n\n\n url = \(url.absoluteString) \n\n\n\n \(url.absoluteString.starts(with: redirectUri!)) \n\n\n\n\n")
         
-        if url.absoluteString.starts(with: redirectUri!) {
+        if url.absoluteString.starts(with: "\(redirectUri!)?code=") {
             decisionHandler(.cancel)
-            //            delegate?.dissmissBack(sentData: true)
-            //            dismiss(animated: true, completion: nil)
-          
-            let index = url.absoluteString.index(of: "code=")!
-            let start = url.absoluteString.index(index, offsetBy: 5)
-            let end = url.absoluteString.index(url.absoluteString.endIndex, offsetBy: -2)
-            
-            let range = start..<end
-            
-            let substring = url.absoluteString[range]
-            let code = String(substring)
-            
-            viewModel.getAccessToken(clientId: clientId!, clientSecret: clientSecret!, code: code, redirectUri: redirectUri!)
-            
+            let requestURLString = url.absoluteString
+
+            print("Response uri:", requestURLString)
+            if let range = requestURLString.range(of: "\(redirectUri!)?code=") {
+                let code = String(requestURLString[range.upperBound...].dropLast(2))
+                viewModel.getAccessToken(clientId: clientId!, clientSecret: clientSecret!, code: code, redirectUri: redirectUri!)
+            }
         }
         else {
             decisionHandler(.allow)

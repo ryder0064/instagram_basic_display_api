@@ -44,6 +44,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Future<void> checkInstagramToken() async {
+    bool isInstagramTokenValid;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      isInstagramTokenValid =
+      await InstagramBasicDisplayApi.isInstagramTokenValid;
+    } on PlatformException {
+      isInstagramTokenValid = false;
+    }
+    print('isInstagramTokenValid $isInstagramTokenValid');
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -51,8 +63,15 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Column(
+          children: [
+            Text('Running on: $_platformVersion\n'),
+            TextButton(
+                onPressed: () {
+                  checkInstagramToken();
+                },
+                child: Text('isTokenValid'))
+          ],
         ),
       ),
     );
