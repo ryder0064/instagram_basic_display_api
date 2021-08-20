@@ -33,6 +33,11 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
     }
     
     func checkTokenValid(result: @escaping FlutterResult){
+                
+        if(AccessTokenRepository.shared.isTokenValid()){
+            result(true)
+            return
+        }
         
         let host = AccessTokenViewController();
         

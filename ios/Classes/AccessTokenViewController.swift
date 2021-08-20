@@ -17,9 +17,11 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
     var clientId: String?
     var clientSecret: String?
     var redirectUri: String?
+    var isTokenValid = false
     
     private let viewModel = AccessTokenViewModel()
     private var cancellable: AnyCancellable? = nil
+    var loadSpinner: UIActivityIndicatorView!
     
     override func loadView() {
         let webConfiguration = WKWebViewConfiguration()
@@ -30,14 +32,14 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
     }
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         clientId = Bundle.main.object(forInfoDictionaryKey: "INSTAGRAM_CLIENT_ID") as? String
         clientSecret = Bundle.main.object(forInfoDictionaryKey: "INSTAGRAM_CLIENT_SECRET") as? String
         redirectUri = Bundle.main.object(forInfoDictionaryKey: "REDIRECT_URI") as? String
         
         if clientId != nil && redirectUri != nil {
             let urlString = "https://www.instagram.com/oauth/authorize?client_id=\(clientId!)&redirect_uri=\(redirectUri!)&scope=user_profile,user_media&response_type=code"
-                        
+
             let myURL = URL(string:urlString)
             let myRequest = URLRequest(url: myURL!)
             webView.load(myRequest)
@@ -45,25 +47,42 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
             print("Need to set Secrets.xcconfig first.")
         }
         
-        cancellable = viewModel.objectWillChange.sink { [weak self] in
-            self?.render()
+        cancellable = viewModel.$state.sink { [weak self] state in
+            self?.render(state)
         }
+        
+        loadSpinner = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.medium)
+        loadSpinner.color = .gray
+        webView.addSubview(loadSpinner)
+        
+        view = webView
+        
     }
     
-    private func render() {
-        switch viewModel.state {
+    override func viewDidLayoutSubviews() {
+        loadSpinner.center = webView.center
+    }
+    
+    private func render(_ state: AccessTokenViewModel.State?) {
+        switch state {
         case .isLoading:
             print("isLoading")
-        // Show loading spinner
+            loadSpinner.startAnimating()
         case .failed(let error):
             print("failed \(error)")
         case .loaded:
+            isTokenValid = true
             print("loaded")
+            DispatchQueue.main.async {
+                self.dismiss(animated: true, completion: nil)
+            }
+        case .none:
+            print("none")
         }
     }
     
     deinit {
-        delegate?.dissmissBack(sentData: false)
+        delegate?.dissmissBack(sentData: isTokenValid)
     }
     
     func webView(

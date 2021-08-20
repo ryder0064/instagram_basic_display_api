@@ -6,12 +6,29 @@
 //
 
 import Foundation
+import KeychainAccess
 
-
-class AccessTokenURLSession {
-    static let shared = AccessTokenURLSession()
+class AccessTokenRepository {
+    static let shared = AccessTokenRepository()
     
     private let boundary = "boundary=\(NSUUID().uuidString)"
+    @KeychainStorage("INSTAGRAM_USER_INFO") private var instagramUser :InstagramUser? = nil
+    
+    func saveInstagramInfo(userId: String, accessToken: String, expiresIn: Int64)  {
+        let newExpiresIn = Int64(NSDate().timeIntervalSince1970) * 1000 + expiresIn
+        instagramUser = InstagramUser(userId: userId, accessToken: accessToken, expiresIn: newExpiresIn)
+    }
+    
+    func isTokenValid() -> Bool {
+        if(instagramUser != nil){
+            print("now: \(Int64(NSDate().timeIntervalSince1970) * 1000), expiresIn: \(instagramUser!.expiresIn)")
+        }
+        if(instagramUser == nil || instagramUser!.expiresIn < Int64(NSDate().timeIntervalSince1970) * 1000){
+            return false
+        }else{
+            return true
+        }
+    }
     
     func getShortAccessTokenInfo(clientId: String, clientSecret: String, code: String, redirectUri: String, completionHandler: @escaping (ShortAccessTokenResponse) -> Void) {
         
@@ -120,5 +137,40 @@ class AccessTokenURLSession {
             }
         }
         return body.data(using: .utf8)!
+    }
+}
+
+@propertyWrapper
+struct KeychainStorage<Value: Codable> {
+    
+    let key: String
+    let service: String
+    let initialValue: Value
+    
+    private let keychain: KeychainAccess.Keychain
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+    
+    init(wrappedValue initialValue: Value, _ key: String, service: String? = nil) {
+        self.initialValue = initialValue
+        self.key = key
+        self.service = service ?? Bundle.main.bundleIdentifier ?? "com.kishikawakatsumi.KeychainAccess"
+        self.keychain = KeychainAccess.Keychain(service: self.service)
+    }
+    
+    var wrappedValue: Value {
+        get {
+            guard let data = try? keychain.getData(key),
+                  let value = try? decoder.decode(Value.self, from: data) else {
+                return initialValue
+            }
+            return value
+        }
+        set {
+            guard let newData = try? encoder.encode(newValue) else {
+                return
+            }
+            try? keychain.set(newData, key: key)
+        }
     }
 }

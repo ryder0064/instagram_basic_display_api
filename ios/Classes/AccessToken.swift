@@ -17,3 +17,9 @@ struct LongAccessTokenResponse: Decodable {
     var tokenType : String
     var expiresIn: Int64
 }
+
+struct InstagramUser :Codable{
+    var userId : String
+    var accessToken : String
+    var expiresIn: Int64
+}

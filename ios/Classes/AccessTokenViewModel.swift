@@ -16,18 +16,16 @@ class AccessTokenViewModel: ObservableObject {
         case loaded
     }
     
-    @Published private(set) var state = State.isLoading
-    
-    func isTokenValid() -> Bool {
-        return false
-    }
+    @Published private(set) var state :State? = nil
     
     func getAccessToken(clientId: String, clientSecret: String, code: String, redirectUri: String) {
+        state = State.isLoading
         
-        AccessTokenURLSession.shared.getShortAccessTokenInfo(clientId: clientId, clientSecret: clientSecret, code: code, redirectUri: redirectUri) { response in
+        AccessTokenRepository.shared.getShortAccessTokenInfo(clientId: clientId, clientSecret: clientSecret, code: code, redirectUri: redirectUri) { response in
             DispatchQueue.main.async {
-                AccessTokenURLSession.shared.getLongAccessTokenInfo(accessToken: response.accessToken, clientSecret: clientSecret, grantType: "ig_exchange_token") { LongAccessTokenResponse in
-                    print("QQQQQ \(LongAccessTokenResponse)")
+                AccessTokenRepository.shared.getLongAccessTokenInfo(accessToken: response.accessToken, clientSecret: clientSecret, grantType: "ig_exchange_token") { longAccessTokenResponse in
+                    AccessTokenRepository.shared.saveInstagramInfo(userId: clientId, accessToken: longAccessTokenResponse.accessToken, expiresIn: longAccessTokenResponse.expiresIn)
+                    self.state = State.loaded
                 }
             }
         }
