@@ -15,15 +15,15 @@ class AccessTokenRepository {
     @KeychainStorage("INSTAGRAM_USER_INFO") private var instagramUser :InstagramUser? = nil
     
     func saveInstagramInfo(userId: String, accessToken: String, expiresIn: Int64)  {
-        let newExpiresIn = Int64(NSDate().timeIntervalSince1970) * 1000 + expiresIn
+        let newExpiresIn = Int64(NSDate().timeIntervalSince1970) + expiresIn
         instagramUser = InstagramUser(userId: userId, accessToken: accessToken, expiresIn: newExpiresIn)
     }
     
     func isTokenValid() -> Bool {
         if(instagramUser != nil){
-            print("now: \(Int64(NSDate().timeIntervalSince1970) * 1000), expiresIn: \(instagramUser!.expiresIn)")
+            print("\nnow: \(Int64(NSDate().timeIntervalSince1970)), expiresIn: \(instagramUser!.expiresIn)\n")
         }
-        if(instagramUser == nil || instagramUser!.expiresIn < Int64(NSDate().timeIntervalSince1970) * 1000){
+        if(instagramUser == nil || instagramUser!.expiresIn < Int64(NSDate().timeIntervalSince1970)){
             return false
         }else{
             return true
@@ -156,6 +156,9 @@ struct KeychainStorage<Value: Codable> {
         self.key = key
         self.service = service ?? Bundle.main.bundleIdentifier ?? "com.kishikawakatsumi.KeychainAccess"
         self.keychain = KeychainAccess.Keychain(service: self.service)
+        
+//        // remove key
+//        try? keychain.remove("INSTAGRAM_USER_INFO")
     }
     
     var wrappedValue: Value {
