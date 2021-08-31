@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       isInstagramTokenValid =
-          await InstagramBasicDisplayApi.isInstagramTokenValid;
+      await InstagramBasicDisplayApi.isInstagramTokenValid;
     } on PlatformException {
       isInstagramTokenValid = false;
     }
