@@ -30,6 +30,68 @@ class AccessTokenRepository {
         }
     }
     
+    func getUserInfo(completionHandler: @escaping (UserInfoResponse) -> Void) throws {
+        guard instagramUser != nil,
+              isTokenValid() == true else {
+            throw InstagramErrors.tokenInvalid
+        }
+        
+        let url = URL(string: "https://graph.instagram.com/me?fields=id,username,account_type&access_token=\(instagramUser!.accessToken)")!
+        
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            if let data = data {
+                do {
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .convertFromSnakeCase
+                    
+                    let response = try decoder.decode(UserInfoResponse.self, from: data)
+                    print("response \(response)")
+                    completionHandler(response)
+                    
+                }catch(let error) {
+                    print(error.localizedDescription)
+                }
+            } else {
+                print("No Data")
+            }
+        }.resume()
+    }
+    
+    func getMedias(completionHandler: @escaping ([[String : Any]]) -> Void) throws {
+        guard instagramUser != nil,
+              isTokenValid() == true else {
+            throw InstagramErrors.tokenInvalid
+        }
+        
+        let url = URL(string: "https://graph.instagram.com/me/media?fields=id,caption,media_type,timestamp,permalink&access_token=\(instagramUser!.accessToken)")!
+        
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            if let data = data {
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        // try to read out a dictionary
+                        print("json = \(json)")
+                        if let data = json["data"] as? [[String:Any]] {
+                            print("\n\n\n\ndata = \(data)")
+                            completionHandler(data)
+                        }
+                    }
+                } catch let error as NSError {
+                    print("Failed to load: \(error.localizedDescription)")
+                }
+            } else {
+                print("No Data")
+            }
+        }.resume()
+    }
+    
     func getShortAccessTokenInfo(clientId: String, clientSecret: String, code: String, redirectUri: String, completionHandler: @escaping (ShortAccessTokenResponse) -> Void) {
         
         let url = URL(string: "https://api.instagram.com/oauth/access_token")!
@@ -112,6 +174,10 @@ class AccessTokenRepository {
         }.resume()
     }
     
+    func logout() {
+        instagramUser = nil
+    }
+    
     private func getFormBody(_ parameters: [[String : String]], _ boundary: String) -> Data {
         var body = ""
         let error: NSError? = nil
@@ -145,23 +211,20 @@ struct KeychainStorage<Value: Codable> {
     
     let key: String
     let service: String
-    let initialValue: Value
+    let initialValue: Value?
     
     private let keychain: KeychainAccess.Keychain
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
-    init(wrappedValue initialValue: Value, _ key: String, service: String? = nil) {
+    init(wrappedValue initialValue: Value?, _ key: String, service: String? = nil) {
         self.initialValue = initialValue
         self.key = key
         self.service = service ?? Bundle.main.bundleIdentifier ?? "com.kishikawakatsumi.KeychainAccess"
         self.keychain = KeychainAccess.Keychain(service: self.service)
-        
-//        // remove key
-//        try? keychain.remove("INSTAGRAM_USER_INFO")
     }
     
-    var wrappedValue: Value {
+    var wrappedValue: Value? {
         get {
             guard let data = try? keychain.getData(key),
                   let value = try? decoder.decode(Value.self, from: data) else {
@@ -170,10 +233,16 @@ struct KeychainStorage<Value: Codable> {
             return value
         }
         set {
-            guard let newData = try? encoder.encode(newValue) else {
+            guard newValue != nil,
+                let newData = try? encoder.encode(newValue) else {
+                try? keychain.remove("INSTAGRAM_USER_INFO")
                 return
             }
             try? keychain.set(newData, key: key)
         }
     }
+}
+
+enum InstagramErrors: Error {
+    case tokenInvalid
 }

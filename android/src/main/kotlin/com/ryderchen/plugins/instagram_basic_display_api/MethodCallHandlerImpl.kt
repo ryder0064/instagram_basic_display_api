@@ -13,13 +13,46 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
     private val TAG = javaClass.name
     private var channel: MethodChannel? = null
 
+    init {
+        instagramBasicDisplayApi.startListening(
+            isTokenValid = {
+                channel?.invokeMethod("isInstagramTokenValid", "")
+            },
+            userUpdated = {
+                channel?.invokeMethod("userUpdated", hashMapOf("ID" to it.id, "USER_NAME" to it.username, "ACCOUNT_TYPE" to it.accountType))
+            },
+            mediasUpdated = {
+                channel?.invokeMethod("mediasUpdated", hashMapOf("DATA" to it))
+            },
+            errorUpdated = {
+                channel?.invokeMethod("errorUpdated", hashMapOf("ERROR_TYPE" to it))
+            }
+        )
+    }
+
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
         when (call.method) {
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
             "isInstagramTokenValid" -> {
-                checkTokenValid(result)
+//                checkTokenValid(result)
+            }
+            "askInstagramToken" -> {
+                instagramBasicDisplayApi.askInstagramToken()
+                result.success(null)
+            }
+            "getInstagramUser" -> {
+                instagramBasicDisplayApi.getInstagramUser()
+                result.success(null)
+            }
+            "getMedias" -> {
+                instagramBasicDisplayApi.getMedias()
+                result.success(null)
+            }
+            "logout" -> {
+                instagramBasicDisplayApi.logout()
+                result.success(null)
             }
             else -> {
                 result.notImplemented()
@@ -46,28 +79,28 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
         channel = null
     }
 
-    private fun checkTokenValid(result: MethodChannel.Result) {
-        Log.d(TAG, "checkTokenValid")
-        instagramBasicDisplayApi.checkTokenValid(
-            object : InstagramBasicDisplayApi.AccessTokenStatusListener {
-                override fun getAccessTokenResult(status: InstagramBasicDisplayApi.TokenStatus) {
-                    Log.d(TAG, "TokenStatus = $status")
-                    when {
-                        status === InstagramBasicDisplayApi.TokenStatus.EXPIRED -> {
-                            result.error("EXPIRED", "Instagram token is expired.", null)
-                        }
-                        status === InstagramBasicDisplayApi.TokenStatus.ERROR_EXCEPTION -> {
-                            result.error(
-                                "ERROR_EXCEPTION", String.format("ERROR_EXCEPTION happens"),
-                                null
-                            )
-                        }
-                        else -> {
-                            result.success(true)
-                        }
-                    }
-                }
-            }
-        )
-    }
+//    private fun checkTokenValid(result: MethodChannel.Result) {
+//        Log.d(TAG, "checkTokenValid")
+//        instagramBasicDisplayApi.checkTokenValid(
+//            object : InstagramBasicDisplayApi.AccessTokenStatusListener {
+//                override fun getAccessTokenResult(status: InstagramBasicDisplayApi.TokenStatus) {
+//                    Log.d(TAG, "TokenStatus = $status")
+//                    when {
+//                        status === InstagramBasicDisplayApi.TokenStatus.EXPIRED -> {
+//                            result.error("EXPIRED", "Instagram token is expired.", null)
+//                        }
+//                        status === InstagramBasicDisplayApi.TokenStatus.ERROR_EXCEPTION -> {
+//                            result.error(
+//                                "ERROR_EXCEPTION", String.format("ERROR_EXCEPTION happens"),
+//                                null
+//                            )
+//                        }
+//                        else -> {
+//                            result.success(true)
+//                        }
+//                    }
+//                }
+//            }
+//        )
+//    }
 }

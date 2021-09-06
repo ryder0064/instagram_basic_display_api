@@ -116,8 +116,9 @@ class AccessTokenActivity : AppCompatActivity() {
         webView.settings.setSupportMultipleWindows(true)
         webView.webChromeClient = FlutterWebChromeClient()
 
-        viewModel.getAssessTokenResult.observe(this, Observer { getAssessTokenResult ->
+        viewModel.getAssessTokenResult.observe(this, Observer<Boolean?> { getAssessTokenResult ->
             Log.d(TAG, "getAssessTokenResult = $getAssessTokenResult")
+            if(getAssessTokenResult == null) return@Observer
             loadingDialog.dismissLoadingDialog()
             if (getAssessTokenResult) {
                 intent.putExtra(Constants.GET_ACCESS_TOKEN_RESULT, getAssessTokenResult)
@@ -126,7 +127,20 @@ class AccessTokenActivity : AppCompatActivity() {
                 setResult(RESULT_CANCELED)
             }
             finish()
-        })
+        }
+//                Observer { getAssessTokenResult ->
+//
+//            Log.d(TAG, "getAssessTokenResult = $getAssessTokenResult")
+//            loadingDialog.dismissLoadingDialog()
+//            if (getAssessTokenResult) {
+//                intent.putExtra(Constants.GET_ACCESS_TOKEN_RESULT, getAssessTokenResult)
+//                setResult(RESULT_OK, intent)
+//            } else {
+//                setResult(RESULT_CANCELED)
+//            }
+//            finish()
+//        }
+        )
     }
 
     private fun isAuthCodeExist(url: String): Boolean {

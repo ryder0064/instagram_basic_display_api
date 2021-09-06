@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.ryderchen.plugins.instagram_basic_display_api.data.model.UserInfoResponse
 import com.ryderchen.plugins.instagram_basic_display_api.data.remote.ApiInstagramService
 import com.ryderchen.plugins.instagram_basic_display_api.data.remote.GraphInstagramService
 import com.ryderchen.plugins.instagram_basic_display_api.utils.Constants
@@ -20,14 +21,47 @@ class DataRepository(
     private val preference = SharedPreferencesManagerImpl(context)
 
     private val TAG = javaClass.name
-    private val _accessTokenResult = MutableLiveData<Boolean>()
-    val accessTokenResult: LiveData<Boolean> = _accessTokenResult
+    private val _accessTokenResult = MutableLiveData<Boolean?>(null)
+    val accessTokenResult: LiveData<Boolean?> = _accessTokenResult
 
     fun isTokenValid(): Boolean {
         val expiredMilliseconds = preference.getLong(Constants.PREF_KEY_EXPIRED_MILLISECONDS, 0)
         val currentTimeMillis: Long = System.currentTimeMillis()
 
         return currentTimeMillis < expiredMilliseconds
+    }
+
+    suspend fun getUserInfo(): UserInfoResponse {
+        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception()
+        }
+        return withContext(Dispatchers.IO) {
+            return@withContext graphInstagramService.getUserInfo(
+                fields = "id,username,account_type",
+                accessToken = preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "")!!
+            )
+        }
+    }
+
+    suspend fun getMedias(): List<Map<String,Any>> {
+        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception()
+        }
+        return withContext(Dispatchers.IO) {
+            val data = graphInstagramService.getMedias(
+                fields = "id,caption,media_type,timestamp,permalink",
+                accessToken = preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "")!!
+            ).data
+
+            return@withContext data
+        }
+    }
+
+    suspend fun logout(): UserInfoResponse {
+        return withContext(Dispatchers.IO) {
+            preference.clear()
+            return@withContext UserInfoResponse("","","")
+        }
     }
 
     suspend fun getAccessToken(
@@ -94,7 +128,10 @@ class DataRepository(
             Log.d(TAG, "longAccessTokenInfo = $longAccessTokenInfo")
 
             val expiredTimeMillis = currentTimeMillis + longAccessTokenInfo.expiresIn
-            Log.d(TAG, "currentTimeMillis = $currentTimeMillis, expiredTimeMillis = $expiredTimeMillis")
+            Log.d(
+                TAG,
+                "currentTimeMillis = $currentTimeMillis, expiredTimeMillis = $expiredTimeMillis"
+            )
 
             preference.set(Constants.PREF_KEY_EXPIRED_MILLISECONDS, expiredTimeMillis)
             preference.set(Constants.PREF_KEY_ACCESS_TOKEN, longAccessTokenInfo.accessToken)
@@ -110,5 +147,9 @@ class DataRepository(
             Log.e(TAG, "getLongAccessToken exception = $exception")
             _accessTokenResult.postValue(false)
         }
+    }
+
+    fun clear() {
+        _accessTokenResult.value = null
     }
 }

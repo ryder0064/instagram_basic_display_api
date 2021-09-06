@@ -7,7 +7,7 @@ import com.ryderchen.plugins.instagram_basic_display_api.data.DataRepository
 import kotlinx.coroutines.launch
 
 class AccessTokenViewModel(private val repository: DataRepository) : ViewModel() {
-    val getAssessTokenResult: LiveData<Boolean> = repository.accessTokenResult
+    val getAssessTokenResult: LiveData<Boolean?> = repository.accessTokenResult
 
     fun getAssessToken(
         clientId: String,
@@ -24,5 +24,10 @@ class AccessTokenViewModel(private val repository: DataRepository) : ViewModel()
                 redirectUri
             )
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        repository.clear()
     }
 }

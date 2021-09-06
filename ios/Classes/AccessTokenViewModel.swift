@@ -13,7 +13,7 @@ class AccessTokenViewModel: ObservableObject {
     enum State {
         case isLoading
         case failed(Error)
-        case loaded
+        case loaded(UserInfoResponse)
     }
     
     @Published private(set) var state :State? = nil
@@ -24,8 +24,20 @@ class AccessTokenViewModel: ObservableObject {
         AccessTokenRepository.shared.getShortAccessTokenInfo(clientId: clientId, clientSecret: clientSecret, code: code, redirectUri: redirectUri) { response in
             DispatchQueue.main.async {
                 AccessTokenRepository.shared.getLongAccessTokenInfo(accessToken: response.accessToken, clientSecret: clientSecret, grantType: "ig_exchange_token") { longAccessTokenResponse in
+                    
                     AccessTokenRepository.shared.saveInstagramInfo(userId: clientId, accessToken: longAccessTokenResponse.accessToken, expiresIn: longAccessTokenResponse.expiresIn)
-                    self.state = State.loaded
+                    
+                    do {
+                        try AccessTokenRepository.shared.getUserInfo { response in
+                            self.state = State.loaded(response)
+                        }
+                    }catch(let error) {
+                        guard error as! InstagramErrors == InstagramErrors.tokenInvalid else {
+                            print(error.localizedDescription)
+                            return
+                        }
+                    }
+
                 }
             }
         }

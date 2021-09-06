@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.Intent
 import android.util.Log
 import com.ryderchen.plugins.instagram_basic_display_api.data.DataRepository
+import com.ryderchen.plugins.instagram_basic_display_api.data.model.UserInfoResponse
 import com.ryderchen.plugins.instagram_basic_display_api.ui.AccessTokenActivity
 import com.ryderchen.plugins.instagram_basic_display_api.utils.Constants.GET_ACCESS_TOKEN_RESULT
 import com.ryderchen.plugins.instagram_basic_display_api.utils.Constants.REQUEST_CODE_FOR_ACCESS_TOKEN
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
+import kotlinx.coroutines.runBlocking
 
 class InstagramBasicDisplayApi(
     private val repository: DataRepository
@@ -17,11 +19,15 @@ class InstagramBasicDisplayApi(
     private val TAG = javaClass.name
 
     private var activity: Activity? = null
-    private var listener: AccessTokenStatusListener? = null
 
     private lateinit var clientId: String
     private lateinit var clientSecret: String
     private lateinit var redirectUri: String
+
+    private lateinit var isTokenValid: (Boolean) -> Unit
+    private lateinit var userUpdated: (UserInfoResponse) -> Unit
+    private lateinit var mediasUpdated: (List<Map<String,Any>>) -> Unit
+    private lateinit var errorUpdated: (String) -> Unit
 
     fun setActivityPluginBinding(binding: ActivityPluginBinding) {
         binding.addActivityResultListener(this)
@@ -32,16 +38,9 @@ class InstagramBasicDisplayApi(
         activity = null
     }
 
-    fun checkTokenValid(listener: AccessTokenStatusListener) {
-        this.listener = listener
-
+    fun askInstagramToken(){
         if (activity == null) {
-            listener.getAccessTokenResult(TokenStatus.ERROR_EXCEPTION)
-            return
-        }
-
-        if (repository.isTokenValid()) {
-            listener.getAccessTokenResult(TokenStatus.VALID)
+            errorUpdated("ERROR_EXCEPTION")
             return
         }
 
@@ -56,14 +55,51 @@ class InstagramBasicDisplayApi(
             activity!!.startActivityForResult(intent, REQUEST_CODE_FOR_ACCESS_TOKEN)
         } catch (e: Exception) {
             Log.e(TAG, "ERROR_EXCEPTION, Need to set instagram client information first")
-            listener.getAccessTokenResult(TokenStatus.ERROR_EXCEPTION)
+            errorUpdated("ERROR_EXCEPTION")
         }
     }
 
-    enum class TokenStatus {
-        VALID,
-        EXPIRED,
-        ERROR_EXCEPTION
+    fun getInstagramUser(){
+        runBlocking {
+            try {
+                userUpdated(repository.getUserInfo())
+            } catch (e: Exception) {
+                Log.e("getUserInfo fail", "e = $e")
+                errorUpdated("tokenInvalid")
+            }
+        }
+    }
+
+    fun getMedias(){
+        runBlocking {
+            try {
+                mediasUpdated(repository.getMedias())
+            } catch (e: Exception) {
+                Log.e("getUserInfo fail", "e = $e")
+                errorUpdated("tokenInvalid")
+            }
+        }
+    }
+
+    fun logout(){
+        runBlocking {
+            try {
+                userUpdated(repository.logout())
+            } catch (e: Exception) {
+                Log.e("logout fail", "e = $e")
+                errorUpdated("ERROR_EXCEPTION")
+            }
+        }
+    }
+
+    fun startListening(isTokenValid: (Boolean) -> Unit,
+                       userUpdated: (UserInfoResponse) -> Unit,
+                       mediasUpdated: (List<Map<String,Any>>) -> Unit,
+                       errorUpdated: (String) -> Unit){
+        this.isTokenValid = isTokenValid
+        this.userUpdated = userUpdated
+        this.mediasUpdated = mediasUpdated
+        this.errorUpdated = errorUpdated
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
@@ -73,17 +109,20 @@ class InstagramBasicDisplayApi(
         )
         if (requestCode == REQUEST_CODE_FOR_ACCESS_TOKEN && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getBooleanExtra(GET_ACCESS_TOKEN_RESULT, false)) {
-                listener?.getAccessTokenResult(TokenStatus.VALID)
+                runBlocking {
+                    try {
+                        userUpdated(repository.getUserInfo())
+                    } catch (e: Exception) {
+                        Log.e("getUserInfo fail", "e = $e")
+                        errorUpdated("tokenInvalid")
+                    }
+                }
             } else {
-                listener?.getAccessTokenResult(TokenStatus.EXPIRED)
+                errorUpdated("tokenInvalid")
             }
             return true
         }
-        listener?.getAccessTokenResult(TokenStatus.EXPIRED)
+        errorUpdated("tokenInvalid")
         return false
-    }
-
-    interface AccessTokenStatusListener {
-        fun getAccessTokenResult(status: TokenStatus)
     }
 }

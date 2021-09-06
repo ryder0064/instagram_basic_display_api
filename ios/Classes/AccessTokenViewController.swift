@@ -17,7 +17,7 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
     var clientId: String?
     var clientSecret: String?
     var redirectUri: String?
-    var isTokenValid = false
+    var userInfoResponse: UserInfoResponse?
     
     private let viewModel = AccessTokenViewModel()
     private var cancellable: AnyCancellable? = nil
@@ -70,9 +70,9 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
             loadSpinner.startAnimating()
         case .failed(let error):
             print("failed \(error)")
-        case .loaded:
-            isTokenValid = true
-            print("loaded")
+        case .loaded(let response):
+            userInfoResponse = response
+            print("loaded userInfoResponse = \(userInfoResponse)")
             DispatchQueue.main.async {
                 self.dismiss(animated: true, completion: nil)
             }
@@ -82,7 +82,7 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
     }
     
     deinit {
-        delegate?.dissmissBack(sentData: isTokenValid)
+        delegate?.dismissBack(userInfoResponse: userInfoResponse)
     }
     
     func webView(
