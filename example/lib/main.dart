@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:instagram_basic_display_api/instagram_basic_display_api.dart';
+import 'package:instagram_basic_display_api/modules.dart';
 
 void main() {
   runApp(MyApp());
@@ -15,7 +16,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  InstagramUser? _instagramUser;
+  List<MediaItem>? _mediaList;
 
   @override
   void initState() {
@@ -47,18 +48,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> checkInstagramToken() async {
-    bool? isInstagramTokenValid;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      isInstagramTokenValid =
-      await InstagramBasicDisplayApi.isInstagramTokenValid;
-    } on PlatformException {
-      isInstagramTokenValid = false;
-    }
-    print('isInstagramTokenValid $isInstagramTokenValid');
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -67,14 +56,8 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: ListView(
-          children: <Widget> [
+          children: <Widget>[
             Text('Running on: $_platformVersion\n'),
-            TextButton(
-                onPressed: () {
-                  checkInstagramToken();
-                },
-                child: Text('isTokenValid')),
-            Text("instagramUser Info :\nid: ${_instagramUser?.id}\nname: ${_instagramUser?.name}\naccountType: ${_instagramUser?.accountType}"),
             ElevatedButton(
                 child: Text("get user"),
                 onPressed: () {
@@ -97,15 +80,89 @@ class _MyAppState extends State<MyApp> {
                     print(
                         "user id = ${user?.id}, name = ${user?.name}, accountType = ${user?.accountType}");
                   });
-                }),
-            ElevatedButton(
-                child: Text("getMedias"),
-                onPressed: () {
-                  InstagramBasicDisplayApi.getMedias().then((medias) {
-                    print("\n\nmedias = $medias");
+                  setState(() {
+                    _mediaList = null;
                   });
                 }),
+            ElevatedButton(
+              child: Text("getMedias"),
+              onPressed: () {
+                InstagramBasicDisplayApi.getMedias().then((medias) {
+                  print("\n\nmedias = $medias\n\n");
+                  if (medias == null) {
+                    return;
+                  }
+                  medias.forEach(
+                    (element) {
+                      print('\nmediaItem: '
+                          '\nid = ${element.id}'
+                          '\ncaption = ${element.caption}'
+                          '\npermalink = ${element.permalink}'
+                          '\nmediaType = ${element.mediaType}'
+                          '\ntimestamp = ${element.timestamp}'
+                          '\nthumbnailUrl = ${element.thumbnailUrl}'
+                          '\nmediaUrl = ${element.mediaUrl}');
+                    },
+                  );
+                  setState(() {
+                    _mediaList = medias;
+                  });
+                });
+              },
+            ),
+            _mediaList == null || _mediaList!.isEmpty
+                ? Container()
+                : ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(5.5),
+                    itemCount: _mediaList!.length,
+                    itemBuilder: _itemBuilder,
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _itemBuilder(BuildContext context, int index) {
+    return InkWell(
+      child: Card(
+        child: Column(
+          children: [
+            Text(
+              "${_mediaList![index].id}",
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text("${_mediaList![index].caption}"),
+            Text("${_mediaList![index].mediaType}"),
+            Text("${_mediaList![index].timestamp}"),
+            _mediaList![index].mediaType == "CAROUSEL_ALBUM"
+                ? ElevatedButton(
+                    child: Text("Log album detail"),
+                    onPressed: () {
+                      InstagramBasicDisplayApi.getAlbumDetail(
+                              _mediaList![index].id)
+                          .then((albumDetail) {
+                        print("\n\nalbumDetail = $albumDetail\n\n");
+                        if (albumDetail == null) {
+                          return;
+                        }
+                        albumDetail.forEach(
+                          (element) {
+                            print('\n\nalbumDetailItem: '
+                                '\nid = ${element.id}'
+                                '\nmediaType = ${element.mediaType}'
+                                '\ntimestamp = ${element.timestamp}'
+                                '\nthumbnailUrl = ${element.thumbnailUrl}'
+                                '\nmediaUrl = ${element.mediaUrl}');
+                          },
+                        );
+                      });
+                    })
+                : Container()
           ],
         ),
       ),

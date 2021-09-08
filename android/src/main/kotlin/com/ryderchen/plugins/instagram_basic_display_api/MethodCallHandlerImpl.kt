@@ -15,14 +15,14 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
 
     init {
         instagramBasicDisplayApi.startListening(
-            isTokenValid = {
-                channel?.invokeMethod("isInstagramTokenValid", "")
-            },
             userUpdated = {
                 channel?.invokeMethod("userUpdated", hashMapOf("ID" to it.id, "USER_NAME" to it.username, "ACCOUNT_TYPE" to it.accountType))
             },
             mediasUpdated = {
                 channel?.invokeMethod("mediasUpdated", hashMapOf("DATA" to it))
+            },
+            albumDetailUpdated = {
+                channel?.invokeMethod("albumDetailUpdated", hashMapOf("DATA" to it))
             },
             errorUpdated = {
                 channel?.invokeMethod("errorUpdated", hashMapOf("ERROR_TYPE" to it))
@@ -35,9 +35,6 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
             "getPlatformVersion" -> {
                 result.success("Android ${android.os.Build.VERSION.RELEASE}")
             }
-            "isInstagramTokenValid" -> {
-//                checkTokenValid(result)
-            }
             "askInstagramToken" -> {
                 instagramBasicDisplayApi.askInstagramToken()
                 result.success(null)
@@ -48,6 +45,14 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
             }
             "getMedias" -> {
                 instagramBasicDisplayApi.getMedias()
+                result.success(null)
+            }
+            "getAlbumDetail" -> {
+                println("getAlbumDetail\n")
+                val arguments = call.arguments as? HashMap<*, *> ?: return
+                val albumId = arguments["albumId"] as String? ?: return
+                println("getAlbumDetail albumId = $albumId")
+                instagramBasicDisplayApi.getAlbumDetail(albumId)
                 result.success(null)
             }
             "logout" -> {

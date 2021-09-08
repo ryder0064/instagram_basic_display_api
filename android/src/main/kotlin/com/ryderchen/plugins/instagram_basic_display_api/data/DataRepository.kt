@@ -24,13 +24,6 @@ class DataRepository(
     private val _accessTokenResult = MutableLiveData<Boolean?>(null)
     val accessTokenResult: LiveData<Boolean?> = _accessTokenResult
 
-    fun isTokenValid(): Boolean {
-        val expiredMilliseconds = preference.getLong(Constants.PREF_KEY_EXPIRED_MILLISECONDS, 0)
-        val currentTimeMillis: Long = System.currentTimeMillis()
-
-        return currentTimeMillis < expiredMilliseconds
-    }
-
     suspend fun getUserInfo(): UserInfoResponse {
         if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
             throw Exception()
@@ -48,12 +41,23 @@ class DataRepository(
             throw Exception()
         }
         return withContext(Dispatchers.IO) {
-            val data = graphInstagramService.getMedias(
-                fields = "id,caption,media_type,timestamp,permalink",
+            return@withContext graphInstagramService.getMedias(
+                fields = "id,caption,media_type,timestamp,permalink,media_url,thumbnail_url",
                 accessToken = preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "")!!
             ).data
+        }
+    }
 
-            return@withContext data
+    suspend fun getAlbumDetail(albumId: String): List<Map<String, Any>> {
+        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception()
+        }
+        return withContext(Dispatchers.IO) {
+            return@withContext graphInstagramService.getAlbumDetail(
+                albumId = albumId,
+                fields = "id,media_type,media_url,timestamp,thumbnail_url",
+                accessToken = preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "")!!
+            ).data
         }
     }
 
@@ -151,5 +155,12 @@ class DataRepository(
 
     fun clear() {
         _accessTokenResult.value = null
+    }
+
+    private fun isTokenValid(): Boolean {
+        val expiredMilliseconds = preference.getLong(Constants.PREF_KEY_EXPIRED_MILLISECONDS, 0)
+        val currentTimeMillis: Long = System.currentTimeMillis()
+
+        return currentTimeMillis < expiredMilliseconds
     }
 }

@@ -24,9 +24,9 @@ class InstagramBasicDisplayApi(
     private lateinit var clientSecret: String
     private lateinit var redirectUri: String
 
-    private lateinit var isTokenValid: (Boolean) -> Unit
     private lateinit var userUpdated: (UserInfoResponse) -> Unit
-    private lateinit var mediasUpdated: (List<Map<String,Any>>) -> Unit
+    private lateinit var mediasUpdated: (List<Map<String, Any>>) -> Unit
+    private lateinit var albumDetailUpdated: (List<Map<String, Any>>) -> Unit
     private lateinit var errorUpdated: (String) -> Unit
 
     fun setActivityPluginBinding(binding: ActivityPluginBinding) {
@@ -64,7 +64,7 @@ class InstagramBasicDisplayApi(
             try {
                 userUpdated(repository.getUserInfo())
             } catch (e: Exception) {
-                Log.e("getUserInfo fail", "e = $e")
+                Log.e("getInstagramUser fail", "e = $e")
                 errorUpdated("tokenInvalid")
             }
         }
@@ -75,7 +75,18 @@ class InstagramBasicDisplayApi(
             try {
                 mediasUpdated(repository.getMedias())
             } catch (e: Exception) {
-                Log.e("getUserInfo fail", "e = $e")
+                Log.e("getMedias fail", "e = $e")
+                errorUpdated("tokenInvalid")
+            }
+        }
+    }
+
+    fun getAlbumDetail(albumId: String){
+        runBlocking {
+            try {
+                albumDetailUpdated(repository.getAlbumDetail(albumId))
+            } catch (e: Exception) {
+                Log.e("getAlbumDetail fail", "e = $e")
                 errorUpdated("tokenInvalid")
             }
         }
@@ -92,13 +103,13 @@ class InstagramBasicDisplayApi(
         }
     }
 
-    fun startListening(isTokenValid: (Boolean) -> Unit,
-                       userUpdated: (UserInfoResponse) -> Unit,
+    fun startListening(userUpdated: (UserInfoResponse) -> Unit,
                        mediasUpdated: (List<Map<String,Any>>) -> Unit,
+                       albumDetailUpdated: (List<Map<String,Any>>) -> Unit,
                        errorUpdated: (String) -> Unit){
-        this.isTokenValid = isTokenValid
         this.userUpdated = userUpdated
         this.mediasUpdated = mediasUpdated
+        this.albumDetailUpdated = albumDetailUpdated
         this.errorUpdated = errorUpdated
     }
 

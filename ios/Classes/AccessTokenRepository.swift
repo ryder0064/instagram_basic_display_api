@@ -66,7 +66,39 @@ class AccessTokenRepository {
             throw InstagramErrors.tokenInvalid
         }
         
-        let url = URL(string: "https://graph.instagram.com/me/media?fields=id,caption,media_type,timestamp,permalink&access_token=\(instagramUser!.accessToken)")!
+        let url = URL(string: "https://graph.instagram.com/me/media?fields=id,caption,media_type,timestamp,permalink,media_url,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
+        
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            if let data = data {
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        // try to read out a dictionary
+                        print("json = \(json)")
+                        if let data = json["data"] as? [[String:Any]] {
+                            print("\n\n\n\ndata = \(data)")
+                            completionHandler(data)
+                        }
+                    }
+                } catch let error as NSError {
+                    print("Failed to load: \(error.localizedDescription)")
+                }
+            } else {
+                print("No Data")
+            }
+        }.resume()
+    }
+    
+    func getAlbumDetail(album: String, completionHandler: @escaping ([[String : Any]]) -> Void) throws {
+        guard instagramUser != nil,
+              isTokenValid() == true else {
+            throw InstagramErrors.tokenInvalid
+        }
+        
+        let url = URL(string: "https://graph.instagram.com/\(album)/children?fields=id,media_type,media_url,timestamp,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
         
         let request = URLRequest(url: url)
         

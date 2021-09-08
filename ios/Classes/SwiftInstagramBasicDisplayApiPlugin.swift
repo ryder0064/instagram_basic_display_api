@@ -15,10 +15,8 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
         self.channel = channel
         super.init()
         self.instagramManager = InstagramManager(
-            isTokenValid: { isTokenValid in
-                self.channel.invokeMethod("isInstagramTokenValid", arguments: "")
-            }, userUpdated: { userInfoResponse in
-                print("Ryder userInfoResponse = \(userInfoResponse), \(userInfoResponse.id), \(userInfoResponse.username), \(userInfoResponse.accountType)")
+            userUpdated: { userInfoResponse in
+                print("userInfoResponse = \(userInfoResponse), \(userInfoResponse.id), \(userInfoResponse.username), \(userInfoResponse.accountType)")
                 self.channel.invokeMethod("userUpdated", arguments: [
                                             "ID": userInfoResponse.id,
                                             "USER_NAME": userInfoResponse.username,
@@ -26,6 +24,9 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
             }, mediasUpdated: { mediasResponse in
                 self.channel.invokeMethod("mediasUpdated", arguments: [
                                             "DATA": mediasResponse])
+            }, albumDetailUpdated: { albumDetailResponse in
+                self.channel.invokeMethod("albumDetailUpdated", arguments: [
+                                            "DATA": albumDetailResponse])
             }, errorUpdated: { type in
                 self.channel.invokeMethod("errorUpdated", arguments: [
                                             "ERROR_TYPE": type])
@@ -38,9 +39,6 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "getPlatformVersion":
             result("iOS " + UIDevice.current.systemVersion)
-        case "isInstagramTokenValid":
-            instagramManager.getTokenValid()
-            result(nil)
         case "askInstagramToken":
             askInstagramToken()
             result(nil)
@@ -49,6 +47,13 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
             result(nil)
         case "getMedias":
             instagramManager.getMedias()
+            result(nil)
+        case "getAlbumDetail":
+            guard let arguments = call.arguments as? [AnyHashable: Any] else { return }
+            guard let albumId = arguments["albumId"] as? String else {
+                return
+            }
+            instagramManager.getAlbumDetail(album: albumId)
             result(nil)
         case "logout":
             instagramManager.logout()

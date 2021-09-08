@@ -1,9 +1,11 @@
 package com.ryderchen.plugins.instagram_basic_display_api.data.remote
 
+import com.ryderchen.plugins.instagram_basic_display_api.data.model.AlbumDetailResponse
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.LongAccessTokenInfo
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.MediasResponse
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.UserInfoResponse
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GraphInstagramService {
@@ -26,4 +28,11 @@ interface GraphInstagramService {
         @Query("fields") fields: String,
         @Query("access_token") accessToken: String
     ): MediasResponse
+
+    @GET("{albumId}/children")
+    suspend fun getAlbumDetail(
+        @Path("albumId") albumId: String,
+        @Query("fields") fields: String,
+        @Query("access_token") accessToken: String
+    ): AlbumDetailResponse
 }
