@@ -21,21 +21,27 @@ For manage secrets in iOS App, we use Xcode Configuration Files.
 3. Update Info.plist with a new Secrets field.
 4. You can now access these fields with Bundle.main.object.
 
+
+
 ## Usage
 
 There is a simple app that prints to console to give an example of functionality of this plugin.
 
+
 ### askInstagramToken
 
 You need to sign your instagram to get access token for using instagram base display api. *Make sure your instagram account has added to your instagram base display project as tested user, like here [getting started](https://developers.facebook.com/docs/instagram-basic-display-api/getting-started)*
+
 Example usage:
 ```
 InstagramBasicDisplayApi.askInstagramToken();
 ```
 
+
 ### getInstagramUser
 
 This will give you a Future which will response the current information of the user.
+
 Example usage:
 ```
 InstagramBasicDisplayApi.getInstagramUser().then((user) {
@@ -45,9 +51,11 @@ InstagramBasicDisplayApi.getInstagramUser().then((user) {
 });
 ```
 
+
 ### logout
 
 This will logout your instagram account and give you a Future which will response the current information of the user.
+
 Example usage:
 ```
 InstagramBasicDisplayApi.logout().then((user) {
@@ -57,9 +65,11 @@ InstagramBasicDisplayApi.logout().then((user) {
 });
 ```
 
+
 ### getMedias
 
 This will give you a Future which will response the current medias of the user. It will show your account's content, include IMAGE、VIDEO or CAROUSEL ALBUM.
+
 Example usage:
 ```
 InstagramBasicDisplayApi.getMedias().then((medias) {
@@ -81,9 +91,11 @@ InstagramBasicDisplayApi.getMedias().then((medias) {
 });
 ```
 
+
 ### getAlbumDetail
 
 This will give you a Future which will response the album's detail that you select. It will show your album's content, include IMAGE、VIDEO.
+
 Example usage:
 ```
 InstagramBasicDisplayApi.getAlbumDetail(SELECTED_ALBUM_ID).then((albumDetail) {
@@ -103,8 +115,10 @@ InstagramBasicDisplayApi.getAlbumDetail(SELECTED_ALBUM_ID).then((albumDetail) {
 });
 ```
 
+
 ### broadcastInstagramUserStream
 This is a stream you can listen to, only triggered by the listening for InstagramUser changes.
+
 Example usage:
 ```
 InstagramBasicDisplayApi.broadcastInstagramUserStream?.listen((instagramUser) {
