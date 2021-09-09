@@ -17,6 +17,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   List<MediaItem>? _mediaList;
+  InstagramUser? _instagramUser;
 
   @override
   void initState() {
@@ -42,9 +43,24 @@ class _MyAppState extends State<MyApp> {
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
-
     setState(() {
       _platformVersion = platformVersion;
+    });
+
+    InstagramBasicDisplayApi.broadcastInstagramUserStream?.listen((instagramUser) {
+      print('instagramUser = ${instagramUser.id}, ${instagramUser.accountType}, ${instagramUser.name}');
+      if (instagramUser.id.isNotEmpty &&
+          instagramUser.name.isNotEmpty &&
+          instagramUser.accountType.isNotEmpty){
+        setState(() {
+          _instagramUser = instagramUser;
+        });
+      } else {
+        print('has logout instagram');
+        setState(() {
+          _instagramUser = null;
+        });
+      }
     });
   }
 
@@ -58,14 +74,11 @@ class _MyAppState extends State<MyApp> {
         body: ListView(
           children: <Widget>[
             Text('Running on: $_platformVersion\n'),
+            Text(_instagramUser != null ? "id: ${_instagramUser!.id}\naccountType: ${_instagramUser!.accountType}\nname: ${_instagramUser!.name}\n":"No Instagram log in"),
             ElevatedButton(
                 child: Text("get user"),
                 onPressed: () {
-                  InstagramBasicDisplayApi.getInstagramUser().then((user) {
-                    print("user = $user");
-                    print(
-                        "user id = ${user?.id}, name = ${user?.name}, accountType = ${user?.accountType}");
-                  });
+                  InstagramBasicDisplayApi.getInstagramUser();
                 }),
             ElevatedButton(
                 child: Text("askToken"),
@@ -75,11 +88,7 @@ class _MyAppState extends State<MyApp> {
             ElevatedButton(
                 child: Text("logout"),
                 onPressed: () {
-                  InstagramBasicDisplayApi.logout().then((user) {
-                    print("user = $user");
-                    print(
-                        "user id = ${user?.id}, name = ${user?.name}, accountType = ${user?.accountType}");
-                  });
+                  InstagramBasicDisplayApi.logout();
                   setState(() {
                     _mediaList = null;
                   });

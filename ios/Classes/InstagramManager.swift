@@ -29,11 +29,16 @@ class InstagramManager {
                 self.userUpdated(response)
             }
         }catch(let error) {
-            guard error as! InstagramErrors == InstagramErrors.tokenInvalid else {
-                print(error.localizedDescription)
+            if(error as? InstagramErrors == InstagramErrors.tokenEmpty){
+                self.errorUpdated("TOKEN_EMPTY")
                 return
             }
-            self.errorUpdated("tokenInvalid")
+            if(error as? InstagramErrors == InstagramErrors.tokenExpired){
+                self.errorUpdated("TOKEN_EXPIRED")
+                return
+            }
+            print(error.localizedDescription)
+            self.errorUpdated("UNKNOWN_EXCEPTION")
         }
     }
     
@@ -43,11 +48,16 @@ class InstagramManager {
                 self.mediasUpdated(response)
             }
         }catch(let error) {
-            guard error as! InstagramErrors == InstagramErrors.tokenInvalid else {
-                print(error.localizedDescription)
+            if(error as? InstagramErrors == InstagramErrors.tokenEmpty){
+                self.errorUpdated("TOKEN_EMPTY")
                 return
             }
-            self.errorUpdated("tokenInvalid")
+            if(error as? InstagramErrors == InstagramErrors.tokenExpired){
+                self.errorUpdated("TOKEN_EXPIRED")
+                return
+            }
+            print(error.localizedDescription)
+            self.errorUpdated("UNKNOWN_EXCEPTION")
         }
     }
     
@@ -57,16 +67,31 @@ class InstagramManager {
                 self.albumDetailUpdated(response)
             })
         }catch(let error) {
-            guard error as! InstagramErrors == InstagramErrors.tokenInvalid else {
-                print(error.localizedDescription)
+            if(error as? InstagramErrors == InstagramErrors.tokenEmpty){
+                self.errorUpdated("TOKEN_EMPTY")
                 return
             }
-            self.errorUpdated("tokenInvalid")
+            if(error as? InstagramErrors == InstagramErrors.tokenExpired){
+                self.errorUpdated("TOKEN_EXPIRED")
+                return
+            }
+            print(error.localizedDescription)
+            self.errorUpdated("UNKNOWN_EXCEPTION")
         }
     }
     
     func logout(){
         AccessTokenRepository.shared.logout()
         self.userUpdated(UserInfoResponse(id: "", username: "", accountType: ""))
+    }
+    
+    func hasFoundInstagramClient() -> Bool{
+        guard Bundle.main.object(forInfoDictionaryKey: "INSTAGRAM_CLIENT_ID") as? String != nil,
+              Bundle.main.object(forInfoDictionaryKey: "INSTAGRAM_CLIENT_SECRET") as? String != nil,
+              Bundle.main.object(forInfoDictionaryKey: "REDIRECT_URI") as? String != nil else {
+            self.errorUpdated("NOT_FOUND_IG_CLIENT")
+            return false
+        }
+        return true
     }
 }

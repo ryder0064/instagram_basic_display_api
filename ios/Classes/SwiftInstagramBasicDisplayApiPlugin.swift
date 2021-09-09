@@ -70,7 +70,7 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
         }
         func dismissBack(userInfoResponse: UserInfoResponse?) {
             guard userInfoResponse != nil else {
-                self.channel.invokeMethod("errorUpdated", arguments: ["errorType": "type"])
+                self.channel.invokeMethod("errorUpdated", arguments: ["ERROR_TYPE": "ASK_TOKEN_INTERRUPT"])
                 return
             }
             
@@ -82,6 +82,13 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
     }
     
     func askInstagramToken(){
+        
+        guard instagramManager.hasFoundInstagramClient() else {
+            return
+        }
+        
+        print("Need to set Secrets.xcconfig first.")
+
         let host = AccessTokenViewController();
         
         host.delegate = DismissBackImpl(channel:channel)

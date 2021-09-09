@@ -20,3 +20,8 @@ List<AlbumDetailItem> extractAlbumDetail(List result) {
 
   return list;
 }
+
+NativeException getExceptionFromString(String errorType) {
+  errorType = 'NativeException.$errorType';
+  return NativeException.values.firstWhere((f)=> f.toString() == errorType, orElse: () => NativeException.UNKNOWN_EXCEPTION);
+}

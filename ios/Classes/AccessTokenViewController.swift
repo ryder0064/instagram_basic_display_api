@@ -72,7 +72,6 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
             print("failed \(error)")
         case .loaded(let response):
             userInfoResponse = response
-            print("loaded userInfoResponse = \(userInfoResponse)")
             DispatchQueue.main.async {
                 self.dismiss(animated: true, completion: nil)
             }
@@ -100,7 +99,6 @@ class AccessTokenViewController: UIViewController, WKUIDelegate, WKNavigationDel
             decisionHandler(.allow)
             return
         }
-        
         
         if url.absoluteString.starts(with: "\(redirectUri!)?code=") {
             decisionHandler(.cancel)

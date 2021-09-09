@@ -77,3 +77,13 @@ class AlbumDetailItem {
     return data;
   }
 }
+
+enum NativeException {
+  NULL_ACTIVITY,
+  ASK_TOKEN_INTERRUPT,
+  NOT_FOUND_IG_CLIENT,
+  TOKEN_EXPIRED,
+  TOKEN_EMPTY,
+  UNKNOWN_EXCEPTION
+}
+

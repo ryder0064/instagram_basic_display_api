@@ -31,9 +31,12 @@ class AccessTokenRepository {
     }
     
     func getUserInfo(completionHandler: @escaping (UserInfoResponse) -> Void) throws {
-        guard instagramUser != nil,
-              isTokenValid() == true else {
-            throw InstagramErrors.tokenInvalid
+        guard instagramUser != nil else {
+            throw InstagramErrors.tokenEmpty
+        }
+        
+        guard isTokenValid() == true else {
+            throw InstagramErrors.tokenExpired
         }
         
         let url = URL(string: "https://graph.instagram.com/me?fields=id,username,account_type&access_token=\(instagramUser!.accessToken)")!
@@ -61,9 +64,12 @@ class AccessTokenRepository {
     }
     
     func getMedias(completionHandler: @escaping ([[String : Any]]) -> Void) throws {
-        guard instagramUser != nil,
-              isTokenValid() == true else {
-            throw InstagramErrors.tokenInvalid
+        guard instagramUser != nil else {
+            throw InstagramErrors.tokenEmpty
+        }
+        
+        guard isTokenValid() == true else {
+            throw InstagramErrors.tokenExpired
         }
         
         let url = URL(string: "https://graph.instagram.com/me/media?fields=id,caption,media_type,timestamp,permalink,media_url,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
@@ -93,9 +99,12 @@ class AccessTokenRepository {
     }
     
     func getAlbumDetail(album: String, completionHandler: @escaping ([[String : Any]]) -> Void) throws {
-        guard instagramUser != nil,
-              isTokenValid() == true else {
-            throw InstagramErrors.tokenInvalid
+        guard instagramUser != nil else {
+            throw InstagramErrors.tokenEmpty
+        }
+        
+        guard isTokenValid() == true else {
+            throw InstagramErrors.tokenExpired
         }
         
         let url = URL(string: "https://graph.instagram.com/\(album)/children?fields=id,media_type,media_url,timestamp,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
@@ -276,5 +285,6 @@ struct KeychainStorage<Value: Codable> {
 }
 
 enum InstagramErrors: Error {
-    case tokenInvalid
+    case tokenEmpty
+    case tokenExpired
 }

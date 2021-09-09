@@ -30,7 +30,7 @@ class InstagramBasicDisplayApi {
   static StreamController<List<AlbumDetailItem>> _albumDetailUpdated =
       StreamController<List<AlbumDetailItem>>();
 
-  static Stream<InstagramUser>? _broadcastInstagramUserStream;
+  static Stream<InstagramUser>? broadcastInstagramUserStream;
 
   static Stream<List<MediaItem>>? _broadcastMediasStream;
 
@@ -44,13 +44,13 @@ class InstagramBasicDisplayApi {
   static Future<InstagramUser?> getInstagramUser() async {
     print('getInstagramUser');
     _channel.invokeMethod('getInstagramUser');
-    return _broadcastInstagramUserStream?.first;
+    return broadcastInstagramUserStream?.first;
   }
 
   static Future<InstagramUser?> logout() async {
     print('logout');
     _channel.invokeMethod('logout');
-    return _broadcastInstagramUserStream?.first;
+    return broadcastInstagramUserStream?.first;
   }
 
   static Future<void> askInstagramToken() {
@@ -71,7 +71,7 @@ class InstagramBasicDisplayApi {
 
   static void initialize() {
     var completer = new Completer<void>();
-    _broadcastInstagramUserStream = _userUpdated.stream.asBroadcastStream();
+    broadcastInstagramUserStream = _userUpdated.stream.asBroadcastStream();
     _broadcastMediasStream = _mediasUpdated.stream.asBroadcastStream();
     _broadcastAlbumDetailStream =
         _albumDetailUpdated.stream.asBroadcastStream();
@@ -79,14 +79,14 @@ class InstagramBasicDisplayApi {
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case "userUpdated":
-          print("Ryder userUpdated id = ${call.arguments["ID"]}");
+          print("userUpdated id = ${call.arguments["ID"]}");
           InstagramUser user = InstagramUser(call.arguments["ID"],
               call.arguments["USER_NAME"], call.arguments["ACCOUNT_TYPE"]);
           _userUpdated.sink.add(user);
           break;
         case "errorUpdated":
           String errorType = call.arguments["ERROR_TYPE"];
-          print("Ryder errorUpdated $errorType");
+          print("errorUpdated ${getExceptionFromString(errorType)}");
           break;
         case "mediasUpdated":
           var medias = extractMedias(call.arguments["DATA"] as List);

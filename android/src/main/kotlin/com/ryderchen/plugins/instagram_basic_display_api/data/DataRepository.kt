@@ -25,8 +25,11 @@ class DataRepository(
     val accessTokenResult: LiveData<Boolean?> = _accessTokenResult
 
     suspend fun getUserInfo(): UserInfoResponse {
-        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
-            throw Exception()
+        if (preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception("TOKEN_EMPTY")
+        }
+        if (!isTokenValid()) {
+            throw Exception("TOKEN_EXPIRED")
         }
         return withContext(Dispatchers.IO) {
             return@withContext graphInstagramService.getUserInfo(
@@ -37,8 +40,11 @@ class DataRepository(
     }
 
     suspend fun getMedias(): List<Map<String,Any>> {
-        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
-            throw Exception()
+        if (preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception("TOKEN_EMPTY")
+        }
+        if (!isTokenValid()) {
+            throw Exception("TOKEN_EXPIRED")
         }
         return withContext(Dispatchers.IO) {
             return@withContext graphInstagramService.getMedias(
@@ -49,8 +55,11 @@ class DataRepository(
     }
 
     suspend fun getAlbumDetail(albumId: String): List<Map<String, Any>> {
-        if (!isTokenValid() || preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
-            throw Exception()
+        if (preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception("TOKEN_EMPTY")
+        }
+        if (!isTokenValid()) {
+            throw Exception("TOKEN_EXPIRED")
         }
         return withContext(Dispatchers.IO) {
             return@withContext graphInstagramService.getAlbumDetail(

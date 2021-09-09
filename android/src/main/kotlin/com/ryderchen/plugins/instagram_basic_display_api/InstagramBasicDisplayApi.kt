@@ -40,7 +40,7 @@ class InstagramBasicDisplayApi(
 
     fun askInstagramToken(){
         if (activity == null) {
-            errorUpdated("ERROR_EXCEPTION")
+            errorUpdated("NULL_ACTIVITY")
             return
         }
 
@@ -55,7 +55,7 @@ class InstagramBasicDisplayApi(
             activity!!.startActivityForResult(intent, REQUEST_CODE_FOR_ACCESS_TOKEN)
         } catch (e: Exception) {
             Log.e(TAG, "ERROR_EXCEPTION, Need to set instagram client information first")
-            errorUpdated("ERROR_EXCEPTION")
+            errorUpdated("NOT_FOUND_IG_CLIENT")
         }
     }
 
@@ -64,8 +64,7 @@ class InstagramBasicDisplayApi(
             try {
                 userUpdated(repository.getUserInfo())
             } catch (e: Exception) {
-                Log.e("getInstagramUser fail", "e = $e")
-                errorUpdated("tokenInvalid")
+                errorUpdated(e.message ?: "UNKNOWN_EXCEPTION")
             }
         }
     }
@@ -75,8 +74,7 @@ class InstagramBasicDisplayApi(
             try {
                 mediasUpdated(repository.getMedias())
             } catch (e: Exception) {
-                Log.e("getMedias fail", "e = $e")
-                errorUpdated("tokenInvalid")
+                errorUpdated(e.message ?: "UNKNOWN_EXCEPTION")
             }
         }
     }
@@ -86,24 +84,19 @@ class InstagramBasicDisplayApi(
             try {
                 albumDetailUpdated(repository.getAlbumDetail(albumId))
             } catch (e: Exception) {
-                Log.e("getAlbumDetail fail", "e = $e")
-                errorUpdated("tokenInvalid")
+                errorUpdated(e.message ?: "UNKNOWN_EXCEPTION")
             }
         }
     }
 
     fun logout(){
         runBlocking {
-            try {
-                userUpdated(repository.logout())
-            } catch (e: Exception) {
-                Log.e("logout fail", "e = $e")
-                errorUpdated("ERROR_EXCEPTION")
-            }
+            userUpdated(repository.logout())
         }
     }
 
-    fun startListening(userUpdated: (UserInfoResponse) -> Unit,
+    fun startListening(
+        userUpdated: (UserInfoResponse) -> Unit,
                        mediasUpdated: (List<Map<String,Any>>) -> Unit,
                        albumDetailUpdated: (List<Map<String,Any>>) -> Unit,
                        errorUpdated: (String) -> Unit){
@@ -124,16 +117,15 @@ class InstagramBasicDisplayApi(
                     try {
                         userUpdated(repository.getUserInfo())
                     } catch (e: Exception) {
-                        Log.e("getUserInfo fail", "e = $e")
-                        errorUpdated("tokenInvalid")
+                        errorUpdated(e.message ?: "UNKNOWN_EXCEPTION")
                     }
                 }
             } else {
-                errorUpdated("tokenInvalid")
+                errorUpdated("ASK_TOKEN_INTERRUPT")
             }
             return true
         }
-        errorUpdated("tokenInvalid")
+        errorUpdated("ASK_TOKEN_INTERRUPT")
         return false
     }
 }

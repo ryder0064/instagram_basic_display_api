@@ -32,10 +32,8 @@ class AccessTokenViewModel: ObservableObject {
                             self.state = State.loaded(response)
                         }
                     }catch(let error) {
-                        guard error as! InstagramErrors == InstagramErrors.tokenInvalid else {
-                            print(error.localizedDescription)
-                            return
-                        }
+                        print(error.localizedDescription)
+                        self.state = State.failed(error)
                     }
 
                 }
