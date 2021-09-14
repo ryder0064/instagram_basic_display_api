@@ -1,6 +1,6 @@
 name: instagram_basic_display_api
 description: A Flutter plugin for integrating Instagram Basic Display API in iOS and Android applications.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/ryder0064/instagram_basic_display_api/tree/develop
 
 environment:
