@@ -11,15 +11,18 @@ class InstagramManager {
     private let userUpdated: ((UserInfoResponse) -> Void)
     private let mediasUpdated: (([[String : Any]]) -> Void)
     private let albumDetailUpdated: (([[String : Any]]) -> Void)
+    private let mediaItemUpdated: (([String : Any]) -> Void)
     private let errorUpdated: ((String) -> Void)
 
     init(userUpdated: @escaping (UserInfoResponse) -> Void,
          mediasUpdated: @escaping ([[String : Any]]) -> Void,
          albumDetailUpdated: @escaping ([[String : Any]]) -> Void,
+         mediaItemUpdated: @escaping ([String : Any]) -> Void,
          errorUpdated: @escaping (String) -> Void) {
         self.userUpdated = userUpdated
         self.mediasUpdated = mediasUpdated
         self.albumDetailUpdated = albumDetailUpdated
+        self.mediaItemUpdated = mediaItemUpdated
         self.errorUpdated = errorUpdated
     }
     
@@ -61,10 +64,29 @@ class InstagramManager {
         }
     }
     
-    func getAlbumDetail(album: String) {
+    func getAlbumDetail(albumId: String) {
         do {
-            try AccessTokenRepository.shared.getAlbumDetail(album: album, completionHandler: { response in
+            try AccessTokenRepository.shared.getAlbumDetail(albumId: albumId, completionHandler: { response in
                 self.albumDetailUpdated(response)
+            })
+        }catch(let error) {
+            if(error as? InstagramErrors == InstagramErrors.tokenEmpty){
+                self.errorUpdated("TOKEN_EMPTY")
+                return
+            }
+            if(error as? InstagramErrors == InstagramErrors.tokenExpired){
+                self.errorUpdated("TOKEN_EXPIRED")
+                return
+            }
+            print(error.localizedDescription)
+            self.errorUpdated("UNKNOWN_EXCEPTION")
+        }
+    }
+    
+    func getMediaItem(mediaId: String) {
+        do {
+            try AccessTokenRepository.shared.getMediaItem(mediaId: mediaId, completionHandler: { response in
+                self.mediaItemUpdated(response)
             })
         }catch(let error) {
             if(error as? InstagramErrors == InstagramErrors.tokenEmpty){

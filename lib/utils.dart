@@ -1,5 +1,4 @@
 import 'modules.dart';
-import 'dart:convert';
 
 List<MediaItem> extractMedias(List result) {
   List<MediaItem> list = (result)

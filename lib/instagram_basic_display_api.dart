@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:flutter/services.dart';
 import 'package:instagram_basic_display_api/utils.dart';
@@ -30,11 +29,17 @@ class InstagramBasicDisplayApi {
   static StreamController<List<AlbumDetailItem>> _albumDetailUpdated =
       StreamController<List<AlbumDetailItem>>();
 
+  //ignore: close_sinks
+  static StreamController<MediaItem> _mediaItemUpdated =
+  StreamController<MediaItem>();
+
   static Stream<InstagramUser>? broadcastInstagramUserStream;
 
   static Stream<List<MediaItem>>? _broadcastMediasStream;
 
   static Stream<List<AlbumDetailItem>>? _broadcastAlbumDetailStream;
+
+  static Stream<MediaItem>? _broadcastMediaItemStream;
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
@@ -69,12 +74,20 @@ class InstagramBasicDisplayApi {
     return _broadcastAlbumDetailStream?.first;
   }
 
+  static Future<MediaItem?> getMediaItem(String mediaId) async {
+    print('getMediaItem mediaId = $mediaId');
+    _channel.invokeMethod('getMediaItem', {"mediaId": mediaId});
+    return _broadcastMediaItemStream?.first;
+  }
+
   static void initialize() {
     var completer = new Completer<void>();
     broadcastInstagramUserStream = _userUpdated.stream.asBroadcastStream();
     _broadcastMediasStream = _mediasUpdated.stream.asBroadcastStream();
     _broadcastAlbumDetailStream =
         _albumDetailUpdated.stream.asBroadcastStream();
+    _broadcastMediaItemStream =
+        _mediaItemUpdated.stream.asBroadcastStream();
 
     _channel.setMethodCallHandler((call) async {
       switch (call.method) {
@@ -95,6 +108,10 @@ class InstagramBasicDisplayApi {
         case "albumDetailUpdated":
           var albumDetail = extractAlbumDetail(call.arguments["DATA"] as List);
           _albumDetailUpdated.sink.add(albumDetail);
+          break;
+        case "mediaItemUpdated":
+          var mediaItem = MediaItem.fromJson(Map<String, dynamic>.from(call.arguments));
+          _mediaItemUpdated.sink.add(mediaItem);
           break;
       }
       completer.complete();

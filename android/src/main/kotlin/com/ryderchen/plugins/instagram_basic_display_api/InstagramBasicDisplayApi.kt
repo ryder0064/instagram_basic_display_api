@@ -27,6 +27,7 @@ class InstagramBasicDisplayApi(
     private lateinit var userUpdated: (UserInfoResponse) -> Unit
     private lateinit var mediasUpdated: (List<Map<String, Any>>) -> Unit
     private lateinit var albumDetailUpdated: (List<Map<String, Any>>) -> Unit
+    private lateinit var mediaItemUpdated: (Map<String, Any>) -> Unit
     private lateinit var errorUpdated: (String) -> Unit
 
     fun setActivityPluginBinding(binding: ActivityPluginBinding) {
@@ -89,6 +90,16 @@ class InstagramBasicDisplayApi(
         }
     }
 
+    fun getMediaItem(mediaId: String){
+        runBlocking {
+            try {
+                mediaItemUpdated(repository.getMediaItem(mediaId))
+            } catch (e: Exception) {
+                errorUpdated(e.message ?: "UNKNOWN_EXCEPTION")
+            }
+        }
+    }
+
     fun logout(){
         runBlocking {
             userUpdated(repository.logout())
@@ -97,12 +108,15 @@ class InstagramBasicDisplayApi(
 
     fun startListening(
         userUpdated: (UserInfoResponse) -> Unit,
-                       mediasUpdated: (List<Map<String,Any>>) -> Unit,
-                       albumDetailUpdated: (List<Map<String,Any>>) -> Unit,
-                       errorUpdated: (String) -> Unit){
+        mediasUpdated: (List<Map<String, Any>>) -> Unit,
+        albumDetailUpdated: (List<Map<String, Any>>) -> Unit,
+        mediaItemUpdated: (Map<String, Any>) -> Unit,
+        errorUpdated: (String) -> Unit
+    ) {
         this.userUpdated = userUpdated
         this.mediasUpdated = mediasUpdated
         this.albumDetailUpdated = albumDetailUpdated
+        this.mediaItemUpdated = mediaItemUpdated
         this.errorUpdated = errorUpdated
     }
 

@@ -92,6 +92,31 @@ InstagramBasicDisplayApi.getMedias().then((medias) {
 ```
 
 
+### getMediaItem
+
+This will give you a Future which will response the media item that you select. It will show your media's content.
+
+Example usage:
+```
+InstagramBasicDisplayApi.getMediaItem(
+    _mediaList![index].id)
+    .then((mediaItem) {
+  print("\n\nmediaItem = $mediaItem\n\n");
+  if (mediaItem == null) {
+    return;
+  }
+  print('\nmediaItem: '
+      '\nid = ${mediaItem.id}'
+      '\ncaption = ${mediaItem.caption}'
+      '\npermalink = ${mediaItem.permalink}'
+      '\nmediaType = ${mediaItem.mediaType}'
+      '\ntimestamp = ${mediaItem.timestamp}'
+      '\nthumbnailUrl = ${mediaItem.thumbnailUrl}'
+      '\nmediaUrl = ${mediaItem.mediaUrl}');
+});
+```
+
+
 ### getAlbumDetail
 
 This will give you a Future which will response the album's detail that you select. It will show your album's content, include IMAGE、VIDEO.

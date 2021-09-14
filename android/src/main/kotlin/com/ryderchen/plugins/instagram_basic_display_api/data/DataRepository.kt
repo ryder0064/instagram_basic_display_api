@@ -70,6 +70,22 @@ class DataRepository(
         }
     }
 
+    suspend fun getMediaItem(mediaId: String): Map<String, Any> {
+        if (preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "").isNullOrEmpty()) {
+            throw Exception("TOKEN_EMPTY")
+        }
+        if (!isTokenValid()) {
+            throw Exception("TOKEN_EXPIRED")
+        }
+        return withContext(Dispatchers.IO) {
+            return@withContext graphInstagramService.getMediaItem(
+                mediaId = mediaId,
+                fields = "id,caption,media_type,timestamp,permalink,media_url,thumbnail_url",
+                accessToken = preference.getString(Constants.PREF_KEY_ACCESS_TOKEN, "")!!
+            ).body() ?: throw Exception("UNKNOWN_EXCEPTION")
+        }
+    }
+
     suspend fun logout(): UserInfoResponse {
         return withContext(Dispatchers.IO) {
             preference.clear()

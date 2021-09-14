@@ -4,6 +4,7 @@ import com.ryderchen.plugins.instagram_basic_display_api.data.model.AlbumDetailR
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.LongAccessTokenInfo
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.MediasResponse
 import com.ryderchen.plugins.instagram_basic_display_api.data.model.UserInfoResponse
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -35,4 +36,11 @@ interface GraphInstagramService {
         @Query("fields") fields: String,
         @Query("access_token") accessToken: String
     ): AlbumDetailResponse
+
+    @GET("{mediaId}")
+    suspend fun getMediaItem(
+        @Path("mediaId") mediaId: String,
+        @Query("fields") fields: String,
+        @Query("access_token") accessToken: String
+    ): Response<Map<String, Any>>
 }

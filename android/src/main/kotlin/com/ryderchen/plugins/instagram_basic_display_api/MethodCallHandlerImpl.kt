@@ -24,6 +24,9 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
             albumDetailUpdated = {
                 channel?.invokeMethod("albumDetailUpdated", hashMapOf("DATA" to it))
             },
+            mediaItemUpdated = {
+                channel?.invokeMethod("mediaItemUpdated", it)
+            },
             errorUpdated = {
                 channel?.invokeMethod("errorUpdated", hashMapOf("ERROR_TYPE" to it))
             }
@@ -53,6 +56,14 @@ class MethodCallHandlerImpl(private val instagramBasicDisplayApi: InstagramBasic
                 val albumId = arguments["albumId"] as String? ?: return
                 println("getAlbumDetail albumId = $albumId")
                 instagramBasicDisplayApi.getAlbumDetail(albumId)
+                result.success(null)
+            }
+            "getMediaItem" -> {
+                println("getMediaItem\n")
+                val arguments = call.arguments as? HashMap<*, *> ?: return
+                val mediaId = arguments["mediaId"] as String? ?: return
+                println("getMediaItem mediaId = $mediaId")
+                instagramBasicDisplayApi.getMediaItem(mediaId)
                 result.success(null)
             }
             "logout" -> {

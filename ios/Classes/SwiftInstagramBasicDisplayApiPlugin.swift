@@ -27,6 +27,8 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
             }, albumDetailUpdated: { albumDetailResponse in
                 self.channel.invokeMethod("albumDetailUpdated", arguments: [
                                             "DATA": albumDetailResponse])
+            }, mediaItemUpdated: { mediaItemResponse in
+                self.channel.invokeMethod("mediaItemUpdated", arguments: mediaItemResponse)
             }, errorUpdated: { type in
                 self.channel.invokeMethod("errorUpdated", arguments: [
                                             "ERROR_TYPE": type])
@@ -53,7 +55,14 @@ public class SwiftInstagramBasicDisplayApiPlugin: NSObject, FlutterPlugin {
             guard let albumId = arguments["albumId"] as? String else {
                 return
             }
-            instagramManager.getAlbumDetail(album: albumId)
+            instagramManager.getAlbumDetail(albumId: albumId)
+            result(nil)
+        case "getMediaItem":
+            guard let arguments = call.arguments as? [AnyHashable: Any] else { return }
+            guard let mediaId = arguments["mediaId"] as? String else {
+                return
+            }
+            instagramManager.getMediaItem(mediaId: mediaId)
             result(nil)
         case "logout":
             instagramManager.logout()

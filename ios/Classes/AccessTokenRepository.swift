@@ -98,7 +98,7 @@ class AccessTokenRepository {
         }.resume()
     }
     
-    func getAlbumDetail(album: String, completionHandler: @escaping ([[String : Any]]) -> Void) throws {
+    func getAlbumDetail(albumId: String, completionHandler: @escaping ([[String : Any]]) -> Void) throws {
         guard instagramUser != nil else {
             throw InstagramErrors.tokenEmpty
         }
@@ -107,7 +107,7 @@ class AccessTokenRepository {
             throw InstagramErrors.tokenExpired
         }
         
-        let url = URL(string: "https://graph.instagram.com/\(album)/children?fields=id,media_type,media_url,timestamp,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
+        let url = URL(string: "https://graph.instagram.com/\(albumId)/children?fields=id,media_type,media_url,timestamp,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
         
         let request = URLRequest(url: url)
         
@@ -123,6 +123,37 @@ class AccessTokenRepository {
                             print("\n\n\n\ndata = \(data)")
                             completionHandler(data)
                         }
+                    }
+                } catch let error as NSError {
+                    print("Failed to load: \(error.localizedDescription)")
+                }
+            } else {
+                print("No Data")
+            }
+        }.resume()
+    }
+    
+    func getMediaItem(mediaId: String, completionHandler: @escaping ([String : Any]) -> Void) throws {
+        guard instagramUser != nil else {
+            throw InstagramErrors.tokenEmpty
+        }
+        
+        guard isTokenValid() == true else {
+            throw InstagramErrors.tokenExpired
+        }
+        
+        let url = URL(string: "https://graph.instagram.com/\(mediaId)?fields=id,caption,media_type,timestamp,permalink,media_url,thumbnail_url&access_token=\(instagramUser!.accessToken)")!
+        
+        let request = URLRequest(url: url)
+        
+        URLSession.shared.dataTask(with: request) {
+            data, response, error in
+            if let data = data {
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        print("\n\n\n\njson = \(json)")
+                        completionHandler(json)
                     }
                 } catch let error as NSError {
                     print("Failed to load: \(error.localizedDescription)")
